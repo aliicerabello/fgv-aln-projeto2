@@ -56,9 +56,11 @@ def jacobi(n: int, e: float, max_iter: int) -> np.ndarray:
             print(erros)
             break
         
-jacobi(2, 10**(-6), 20)
+    else:
+        print("Não convergiu.")
+        
+jacobi(2, 1e-8, 20)
 
-#na funcao gerar testes, fazer com o  mesmo A e b pra comparar a vlociade
 
 def jacobi_matricial(n:int, e:float, max_iter:int):
     A, b = gerar_sistema_diag_dominante(n)
@@ -67,10 +69,10 @@ def jacobi_matricial(n:int, e:float, max_iter:int):
     D = np.diag(A)
     L = np.tril(A, k = -1) # posso usar?
     U = np.triu(A, k = 1) # muda complexidade?
-
     D_inv_vals = 1/D #ambas sao 1 dimensional
-
     D_inv = np.diag(D_inv_vals)
+
+    #equação = D @ x_new = b - R @ x0
 
     erros = []
     x0 = np.zeros(n)
@@ -92,13 +94,80 @@ def jacobi_matricial(n:int, e:float, max_iter:int):
             print(erros)
             break
 
+    else:
+        print("Não convergiu.")
 
-jacobi_matricial(2, 10**(-6), 20)
+
+jacobi_matricial(2, 1e-8, 20)
+
+
+def gauss_seidel(n: int, e: float, max_iter: int):
+    """
+    Calcula o algoritmo de Jacobi por meio da sua lei de formação.
+    Paramêtros:
+    n = núm. de linhas e colunas de A;
+    e = erro usado para determinar convergência;
+    max_iter = máximo de iterações que o algoritmo vai realizar
+    """
+    A, b = gerar_sistema_diag_dominante(n)
+    erros = []
+    x0 = np.zeros(n)
+    x_new = np.zeros(n)
+    for i in range(max_iter):
+        x0 = x_new.copy() #não alterar o array de x_new
+        
+        for j in range(n):
+            # atualiza enqt altera todo o x_new (principal diff pra gauss seidel)
+            soma = sum(A[j][k] * x_new[k] for k in range(n) if k != j)
+            x_new[j] = (b[j] - soma)*(1/A[j][j])
+
+        erro = np.linalg.norm(x_new - x0)
+        erros.append(erro)
+
+        if erro < e:
+            print(f"Convergiu em {i+1} iterações")
+            print(erros)
+            break
+
+    else:
+        print("Não convergiu.")
+    
+gauss_seidel(2, 1e-8, 100)
+
+
+def gauss_seidel_matricial(n:int, e:float, max_iter:int):
+    A, b = gerar_sistema_diag_dominante(n)
+
+    b = np.array(b)
+    D = np.diag(A)
+    L = np.tril(A, k = -1) # posso usar?
+    U = np.triu(A, k = 1) # muda complexidade?
+    DL = np.diag(D) + L
+    # equação = (D + L) @ x_new = (b - U @ x0)
+
+    erros = []
+    x0 = np.zeros(n)
+    x_new = np.zeros(n)
+
+    for i in range(max_iter):
+        # atualiza depois de alterar todo o x_new (principal diff pra gauss seidel)
+        x0 = x_new.copy() #não alterar o array de x_new
+
+        x_new = np.linalg.solve(DL, b - U @ x0) 
+        #explicar a diferenca desse pro linalg.inv (complexidade)
+
+        erro = np.linalg.norm(x_new - x0)
+        erros.append(erro)
+
+        if erro < e:
+            print(f"Convergiu em {i+1} iterações")
+            print(erros)
+            break
+
+    else:
+        print("Não convergiu.")
 
 
 
-def gauss_seidel(A, b):
-    pass
+gauss_seidel_matricial(2, 1e-8, 100)
 
-def gauss_seidel_matricial(A, b):
-    pass
